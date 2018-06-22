@@ -1,4 +1,4 @@
-﻿// ***********************************************************************
+// ***********************************************************************
 // Copyright (c) 2015 Charlie Poole, Rob Prouse
 //
 // Permission is hereby granted, free of charge, to any person obtaining
@@ -25,6 +25,7 @@ using System.Collections;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using System;
+using System.Collections.Generic;
 
 namespace NUnit.TestData.TestFixtureSourceData
 {
@@ -249,6 +250,52 @@ namespace NUnit.TestData.TestFixtureSourceData
             yield return new TestFixtureData("MoreExplicitData").Explicit();
         }
     }
+
+    #region Test name tests
+
+    [TestFixtureSource(nameof(NamedData))]
+    public sealed class IndividualInstanceNameTestDataFixture
+    {
+        public IndividualInstanceNameTestDataFixture(params object[] args)
+        {
+        }
+
+        [Test]
+        public void Test() { }
+
+        public static IEnumerable<TestFixtureData> NamedData()
+        {
+            yield return CreateTestFixtureData(
+                args: new object[] { "argValue" },
+                argDisplayNames: null,
+                expectedFixtureName: typeof(IndividualInstanceNameTestDataFixture).Name + "(\"argValue\")");
+
+            yield return CreateTestFixtureData(
+                    args: new object[] { "argValue" },
+                    argDisplayNames: null,
+                    expectedFixtureName: typeof(IndividualInstanceNameTestDataFixture).Name + "()")
+                .SetArgDisplayNames(null); // Test the use of a target-typed null literal
+
+            yield return CreateTestFixtureData(
+                args: new object[] { "argValue" },
+                argDisplayNames: new[] { "argName" },
+                expectedFixtureName: typeof(IndividualInstanceNameTestDataFixture).Name + "(argName)");
+        }
+
+        private static TestFixtureData CreateTestFixtureData(object[] args, string[] argDisplayNames, string expectedFixtureName)
+        {
+            var data = new TestFixtureData(args)
+            {
+                Properties = { ["ExpectedFixtureName"] = { expectedFixtureName } }
+            };
+
+            if (argDisplayNames != null) data.SetArgDisplayNames(argDisplayNames);
+
+            return data;
+        }
+    }
+
+    #endregion
 
     [TestFixture]
     public abstract class Issue1118_Root
